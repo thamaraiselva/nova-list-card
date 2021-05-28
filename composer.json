@@ -1,0 +1,39 @@
+{
+    "name": "yaroslawww/nova-list-card",
+    "description": "Laravel Nova card with resources list",
+    "keywords": [
+        "laravel",
+        "nova",
+        "card",
+        "listing"
+    ],
+    "homepage": "https://github.com/yaroslawww/nova-list-card",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "watson/aggregate": "^4.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "NovaListCard\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NovaListCard\\CardServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
