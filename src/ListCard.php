@@ -55,7 +55,7 @@ class ListCard extends Card
 
     public function withCount($relationship)
     {
-        $this->aggregate = 'count';
+        $this->aggregate    = 'count';
         $this->relationship = $relationship;
 
         return $this;
@@ -63,8 +63,8 @@ class ListCard extends Card
 
     public function withSum($relationship, $column)
     {
-        $this->aggregate = 'sum';
-        $this->relationship = $relationship;
+        $this->aggregate       = 'sum';
+        $this->relationship    = $relationship;
         $this->aggregateColumn = $column;
 
         return $this;
@@ -72,7 +72,7 @@ class ListCard extends Card
 
     public function orderBy($column, $direction = 'asc')
     {
-        $this->orderColumn = $column;
+        $this->orderColumn    = $column;
         $this->orderDirection = $direction;
 
         return $this;
@@ -95,8 +95,8 @@ class ListCard extends Card
 
     public function value($column, $format = null, $formatter = 'numerial')
     {
-        $this->valueColumn = $column;
-        $this->valueFormat = $format;
+        $this->valueColumn    = $column;
+        $this->valueFormat    = $format;
         $this->valueFormatter = $formatter;
 
         return $this;
@@ -105,8 +105,8 @@ class ListCard extends Card
     public function timestamp($column = 'created_at', $format = 'MM/DD/YYYY'): ListCard
     {
         $this->timestampEnabled = true;
-        $this->timestampColumn = $column;
-        $this->timestampFormat = $format;
+        $this->timestampColumn  = $column;
+        $this->timestampFormat  = $format;
 
         return $this;
     }
@@ -141,21 +141,21 @@ class ListCard extends Card
     public function jsonSerialize(): array
     {
         return array_merge([
-            'limit' => $this->limit,
-            'uri_key' => $this->uriKey(),
-            'relationship' => $this->relationship,
-            'aggregate' => $this->aggregate,
-            'aggregate_column' => $this->aggregateColumn,
-            'order_column' => $this->orderColumn,
-            'order_direction' => $this->orderDirection,
-            'classes' => $this->classes,
-            'heading' => $this->heading,
-            'value_column' => $this->valueColumn,
-            'value_format' => $this->valueFormat,
-            'value_formatter' => $this->valueFormatter,
-            'timestamp_column' => $this->timestampColumn,
+            'limit'             => $this->limit,
+            'uri_key'           => $this->uriKey(),
+            'relationship'      => $this->relationship,
+            'aggregate'         => $this->aggregate,
+            'aggregate_column'  => $this->aggregateColumn,
+            'order_column'      => $this->orderColumn,
+            'order_direction'   => $this->orderDirection,
+            'classes'           => $this->classes,
+            'heading'           => $this->heading,
+            'value_column'      => $this->valueColumn,
+            'value_format'      => $this->valueFormat,
+            'value_formatter'   => $this->valueFormatter,
+            'timestamp_column'  => $this->timestampColumn,
             'timestamp_enabled' => $this->timestampEnabled,
-            'timestamp_format' => $this->timestampFormat,
+            'timestamp_format'  => $this->timestampFormat,
         ], parent::jsonSerialize());
     }
 

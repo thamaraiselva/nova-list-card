@@ -3,19 +3,36 @@
 namespace NovaListCard\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
 
 class ResourceController extends Controller
 {
+    /**
+     * @param $key
+     * @param string $aggregate
+     * @param null $relationship
+     * @param null $column
+     *
+     * @return mixed
+     */
     public function __invoke($key, $aggregate = 'count', $relationship = null, $column = null)
     {
         $novaRequest = resolve(NovaRequest::class);
 
-        $card = collect(Nova::$cards)
-            ->filter(function ($card) use ($key) {
-                return method_exists($card, 'uriKey') && $card->uriKey() == $key;
-            })->first();
+        $allCards = new Collection();
+        $allCards->push(...Nova::$cards);
+        collect(Nova::$dashboards)
+            ->filter(function ($dashboard) use ($key) {
+                return method_exists($dashboard, 'cards') && is_array($dashboard->cards());
+            })->each(function ($dashboard) use ($allCards) {
+                $allCards->push(...$dashboard->cards());
+            });
+
+        $card = $allCards->filter(function ($card) use ($key) {
+            return method_exists($card, 'uriKey') && $card->uriKey() == $key;
+        })->first();
 
         $resource = $card->resource;
 
@@ -34,22 +51,22 @@ class ResourceController extends Controller
         $query = $resource::indexQuery($novaRequest, $query);
 
         return $query->get()
-            ->mapInto($resource)
-            ->filter(function ($resource) use ($novaRequest) {
-                return $resource->authorizedToView($novaRequest);
-            })->map(function ($resource) use ($novaRequest, $aggregate, $relationship) {
-                return [
-                    'resource' => $resource->resource->toArray(),
-                    'resourceName' => $resource::uriKey(),
+                     ->mapInto($resource)
+                     ->filter(function ($resource) use ($novaRequest) {
+                         return $resource->authorizedToView($novaRequest);
+                     })->map(function ($resource) use ($novaRequest, $aggregate, $relationship) {
+                         return [
+                    'resource'      => $resource->resource->toArray(),
+                    'resourceName'  => $resource::uriKey(),
                     'resourceTitle' => $resource::label(),
-                    'title' => $resource->title(),
-                    'subTitle' => $resource->subtitle(),
-                    'resourceId' => $resource->getKey(),
-                    'url' => url(Nova::path().'/resources/'.$resource::uriKey().'/'.$resource->getKey()),
-                    'avatar' => $resource->resolveAvatarUrl($novaRequest),
-                    'aggregate' => data_get($resource, "{$relationship}_{$aggregate}"),
+                    'title'         => $resource->title(),
+                    'subTitle'      => $resource->subtitle(),
+                    'resourceId'    => $resource->getKey(),
+                    'url'           => url(Nova::path() . '/resources/' . $resource::uriKey() . '/' . $resource->getKey()),
+                    'avatar'        => $resource->resolveAvatarUrl($novaRequest),
+                    'aggregate'     => data_get($resource, "{$relationship}_{$aggregate}"),
                 ];
-            });
+                     });
     }
 
     public function applyAggregate($query, $aggregate, $relationship, $column = null)
