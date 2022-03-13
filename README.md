@@ -1,8 +1,11 @@
 # Nova List Card
 
-Fork of [dillingham/nova-list-card](https://packagist.org/packages/dillingham/nova-list-card) but with a different
-frontend and a partially modified backend, so it cannot be merged with the main repo. Subtitle and footer features
-removed.
+[![Packagist License](https://img.shields.io/packagist/l/yaroslawww/nova-list-card?color=%234dc71f)](https://github.com/yaroslawww/nova-list-card/blob/master/LICENSE.md)
+[![Packagist Version](https://img.shields.io/packagist/v/yaroslawww/nova-list-card)](https://packagist.org/packages/yaroslawww/nova-list-card)
+[![Total Downloads](https://img.shields.io/packagist/dt/yaroslawww/nova-list-card)](https://packagist.org/packages/yaroslawww/nova-list-card)
+[![Build Status](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/badges/build.png?b=master)](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/build-status/master)
+[![Code Coverage](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/?branch=master)
 
 ### Install
 

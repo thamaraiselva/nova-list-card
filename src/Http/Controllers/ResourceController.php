@@ -3,87 +3,45 @@
 namespace NovaListCard\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Collection;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
+use NovaListCard\Http\Requests\CardRequest;
 
+/**
+ * @psalm-suppress UndefinedClass
+ */
 class ResourceController extends Controller
 {
     /**
-     * @param $key
-     * @param string $aggregate
-     * @param null $relationship
-     * @param null $column
-     *
+     * @param  \NovaListCard\Http\Requests\CardRequest  $cardRequest
      * @return mixed
+     * @throws \Throwable
      */
-    public function __invoke($key, $aggregate = 'count', $relationship = null, $column = null)
+    public function __invoke(CardRequest $cardRequest)
     {
-        $novaRequest = resolve(NovaRequest::class);
+        $resource = $cardRequest->findResource();
+        throw_if(!$resource);
 
-        $allCards = new Collection();
-        $allCards->push(...Nova::$cards);
-        collect(Nova::$dashboards)
-            ->filter(function ($dashboard) use ($key) {
-                return method_exists($dashboard, 'cards') && is_array($dashboard->cards());
-            })->each(function ($dashboard) use ($allCards) {
-                $allCards->push(...$dashboard->cards());
-            });
-
-        $card = $allCards->filter(function ($card) use ($key) {
-            return method_exists($card, 'uriKey') && $card->uriKey() == $key;
-        })->first();
-
-        $resource = $card->resource;
-
-        $query = $resource::newModel();
-
-        if ($relationship) {
-            $query = $this->applyAggregate($query, $aggregate, $relationship, $column);
-        }
-
-        $query = $this->applyOrdering($query);
-
-        if (request()->has('limit')) {
-            $query->take(request('limit'));
-        }
-
-        $query = $resource::indexQuery($novaRequest, $query);
-
-        return $query->get()
-                     ->mapInto($resource)
-                     ->filter(function ($resource) use ($novaRequest) {
-                         return $resource->authorizedToView($novaRequest);
-                     })->map(function ($resource) use ($novaRequest, $aggregate, $relationship) {
-                         return [
-                    'resource'      => $resource->resource->toArray(),
-                    'resourceName'  => $resource::uriKey(),
-                    'resourceTitle' => $resource::label(),
-                    'title'         => $resource->title(),
-                    'subTitle'      => $resource->subtitle(),
-                    'resourceId'    => $resource->getKey(),
-                    'url'           => url(Nova::path() . '/resources/' . $resource::uriKey() . '/' . $resource->getKey()),
-                    'avatar'        => $resource->resolveAvatarUrl($novaRequest),
-                    'aggregate'     => data_get($resource, "{$relationship}_{$aggregate}"),
-                ];
-                     });
-    }
-
-    public function applyAggregate($query, $aggregate, $relationship, $column = null)
-    {
-        if ('count' == $aggregate) {
-            return $query->withCount($relationship);
-        }
-
-        if ('sum' == $aggregate) {
-            return $query->withSum($relationship, $column);
-        }
-    }
-
-    public function applyOrdering($query)
-    {
-        $direction = (request()->input('direction')) ? request('direction') : 'asc';
-
-        return $query->orderBy(request('order_by'), $direction);
+        return $resource::indexQuery(
+            $cardRequest,
+            $cardRequest->prepareQuery($resource::newModel()->query())
+        )
+                        ->get()
+                        ->mapInto($resource)
+                        ->filter(function ($resource) use ($cardRequest) {
+                            return $resource->authorizedToView($cardRequest);
+                        })
+                        ->map(callback: function ($resource) use ($cardRequest) {
+                            return [
+                                'resource'      => $resource->resource->toArray(),
+                                'resourceName'  => $resource::uriKey(),
+                                'resourceTitle' => $resource::label(),
+                                'title'         => $resource->title(),
+                                'subTitle'      => $resource->subtitle(),
+                                'resourceId'    => $resource->getKey(),
+                                'url'           => url(Nova::path().'/resources/'.$resource::uriKey().'/'.$resource->getKey()),
+                                'avatar'        => $resource->resolveAvatarUrl($cardRequest),
+                                'aggregate'     => data_get($resource, $cardRequest->aggregateColumn()),
+                            ];
+                        });
     }
 }
