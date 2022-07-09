@@ -35,7 +35,7 @@ class CardRequest extends NovaRequest
      */
     public function findResource(): ?string
     {
-        $allCards = new Collection(Nova::$cards);
+        $allCards = new Collection();
         collect(Nova::$dashboards)
             ->filter(fn ($dashboard) => method_exists($dashboard, 'cards') && is_array($dashboard->cards()))
             ->each(fn ($dashboard)   => $allCards->push(...$dashboard->cards()));

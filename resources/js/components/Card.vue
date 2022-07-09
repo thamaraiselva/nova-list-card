@@ -1,33 +1,23 @@
 <template>
-    <div
+    <LoadingCard
+        :loading="loading"
         :id="card.uri_key"
-        :class="['card', 'card-panel', 'nova-list-card', card.classes, 'py-4', 'px-6', 'bg-white', 'relative']">
-
-        <div
-            class="nova-list-card-heading flex"
+        class="text-gray-500 py-4 px-6 bg-white relative"
+        :class="[card.classes]">
+        <h3 class="h-6 flex mb-3 text-sm font-bold"
             v-if="card.heading.length !== 0"
         >
-            <div
-                class="truncate left flex mb-3 text-base text-80 font-bold"
-                :class="{'w-3/4': card.heading.right}"
-            >
-                {{ card.heading.left }}
-            </div>
-            <div
-                class="w-1/4 truncate right text-sm"
-                v-if="card.heading.right"
-            >
-                {{ card.heading.right }}
-            </div>
-        </div>
+            {{ card.heading.left }}
+            <span class="ml-auto font-semibold text-gray-400 text-xs"
+                  v-if="card.heading.right">
+                 {{ card.heading.right }}
+            </span>
+        </h3>
 
-        <div class="nova-list-card-body relative">
-            <div v-if="loading" class="flex justify-center items-center absolute pin z-50 bg-white">
-                <loader class="text-60"/>
-            </div>
+        <div class="relative">
             <div
-                v-else-if="items.length === 0"
-                class="text-center text-base text-80 font-normal mb-6 pt-8"
+                v-if="items.length === 0"
+                class="text-base flex flex-col items-center"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -54,26 +44,25 @@
             </div>
             <div
                 v-else
-                class="max-h-90px overflow-auto"
+                class="max-h-[90px] overflow-x-auto"
             >
-                <router-link
-                    :to="{ name: 'detail', params: { resourceName: item.resourceName, resourceId: item.resourceId}}"
+                <Link
+                    :href="$url(`/resources/${item.resourceName}/${item.resourceId}`)"
                     v-for="(item, index) in items"
                     :key="item.id"
-                    class="nova-list-card-item cursor-pointer block text-black no-underline"
-                    :class="'nova-list-card-item-' + (index + 1)"
+                    class="cursor-pointer block no-underline hover:bg-gray-100"
                 >
                     <div class="flex py-1">
                         <div
-                            :class="{'w-full': card.value_column == null, 'w-3/4 pr-4': card.value_column != null}"
+                            :class="{'w-full': card.value_column == null, 'grow pr-4': card.value_column != null}"
                         >
 
-                            <p class="nova-list-card-title truncate no-underline dim text-primary text-sm">
+                            <p class="truncate no-underline text-sm">
                                 {{ item.title }}
                             </p>
 
                             <p
-                                class="text-80 nova-list-card-timestamp text-xs"
+                                class="text-xs"
                                 v-if="card.timestamp_enabled"
                             >
                                 {{ timestampValue(item.resource[card.timestamp_column], card.timestamp_format) }}
@@ -89,26 +78,21 @@
                         </div>
                         <div
                             v-if="card.value_column != null"
-                            class="nova-list-card-value w-1/4 truncate text-xs text-80"
+                            class="truncate text-xs pr-2"
                         >
                             {{ formatValue(item, card.value_format) }}
                         </div>
 
                     </div>
-                </router-link>
+                </Link>
             </div>
         </div>
-    </div>
+    </LoadingCard>
 </template>
-
-<style>
-.nova-list-card.zebra .nova-list-card-item:nth-child(even) {
-    background-color: var(--20);
-}
-</style>
 
 <script>
 import numerial from "numeral";
+import moment from 'moment'
 
 export default {
     props: ["card"],

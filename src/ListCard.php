@@ -126,16 +126,6 @@ class ListCard extends Card
     }
 
     /**
-     * Set each second row with different background color
-     *
-     * @return $this
-     */
-    public function zebra(): ListCard
-    {
-        return $this->classes('zebra');
-    }
-
-    /**
      * @inheritDoc
      */
     public function jsonSerialize(): array

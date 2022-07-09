@@ -1,3 +1,5 @@
-Nova.booting((Vue, router, store) => {
-    Vue.component('nova-list-card', require('./components/Card'))
+import Card from './components/Card'
+
+Nova.booting((app, store) => {
+    app.component('nova-list-card', Card)
 })

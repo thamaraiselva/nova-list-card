@@ -1,3 +1,9 @@
 let mix = require('laravel-mix')
 
-mix.setPublicPath('dist').js('resources/js/card.js', 'js')
+require('./nova.mix')
+
+mix
+    .setPublicPath('dist')
+    .js('resources/js/card.js', 'js')
+    .vue({ version: 3 })
+    .nova('yaroslawww/nova-list-card')

@@ -7,6 +7,11 @@
 [![Code Coverage](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/yaroslawww/nova-list-card/?branch=master)
 
+| Nova  | Package |
+|-------|---------|
+| V1-V3 | V1-V3   |
+| V4    | V4      |
+
 ### Install
 
 ```bash
