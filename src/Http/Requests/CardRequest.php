@@ -9,7 +9,6 @@ use Laravel\Nova\Nova;
 
 class CardRequest extends NovaRequest
 {
-
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -33,12 +32,12 @@ class CardRequest extends NovaRequest
     /**
      * @return string|null|\Laravel\Nova\Resource
      */
-    public function findResource(): ?string
+    public function findResource($resourceId = null): ?string
     {
         $allCards = new Collection();
         collect(Nova::$dashboards)
             ->filter(fn ($dashboard) => method_exists($dashboard, 'cards') && is_array($dashboard->cards()))
-            ->each(fn ($dashboard)   => $allCards->push(...$dashboard->cards()));
+            ->each(fn ($dashboard) => $allCards->push(...$dashboard->cards()));
 
         return $allCards
             ->filter(fn ($card) => (method_exists($card, 'uriKey') && $card->uriKey() == $this->route('key')))
