@@ -27,7 +27,7 @@ class AggregateTest extends TestCase
         $actual = Order::withAggregate('products', '*', 'count')->first();
 
         $expected = DB::select(
-            DB::raw('select (select count(*) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_count" from "orders"')
+            'select (select count(*) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_count" from "orders"'
         )[0];
 
         $this->assertEquals($expected->products_count, $actual->products_count);
@@ -38,7 +38,7 @@ class AggregateTest extends TestCase
         $actual = Order::query()->withSum('products', 'quantity')->first();
 
         $expected = DB::select(
-            DB::raw('select (select sum(quantity) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_sum" from "orders"')
+            'select (select sum(quantity) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_sum" from "orders"'
         )[0];
 
         $this->assertEquals($expected->products_sum, $actual->products_sum_quantity);
@@ -49,7 +49,7 @@ class AggregateTest extends TestCase
         $actual = Order::withAvg('products', 'price')->first();
 
         $expected = DB::select(
-            DB::raw('select (select avg(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_avg" from "orders"')
+            'select (select avg(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_avg" from "orders"'
         )[0];
 
         $this->assertEquals($expected->products_avg, $actual->products_avg_price);
@@ -60,7 +60,7 @@ class AggregateTest extends TestCase
         $actual = Order::withMin('products', 'price')->first();
 
         $expected = DB::select(
-            DB::raw('select (select min(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_min" from "orders"')
+            'select (select min(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_min" from "orders"'
         )[0];
 
         $this->assertEquals($expected->products_min, $actual->products_min_price);
@@ -71,7 +71,7 @@ class AggregateTest extends TestCase
         $actual = Order::withMax('products', 'price')->first();
 
         $expected = DB::select(
-            DB::raw('select (select max(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_max" from "orders"')
+            'select (select max(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_max" from "orders"'
         )[0];
 
         $this->assertEquals($expected->products_max, $actual->products_max_price);
@@ -82,7 +82,7 @@ class AggregateTest extends TestCase
         $actual = Order::withMin('products as min_price', 'price')->first();
 
         $expected = DB::select(
-            DB::raw('select (select min(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "min_price" from "orders"')
+            'select (select min(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "min_price" from "orders"'
         )[0];
 
         $this->assertEquals($expected->min_price, $actual->min_price);
@@ -95,7 +95,7 @@ class AggregateTest extends TestCase
         }], 'price')->first();
 
         $expected = DB::select(
-            DB::raw('select (select max(price) from "product_orders" where "orders"."id" = "product_orders"."order_id" and "quantity" > 1) as "higher_price" from "orders"')
+            'select (select max(price) from "product_orders" where "orders"."id" = "product_orders"."order_id" and "quantity" > 1) as "higher_price" from "orders"'
         )[0];
 
         $this->assertEquals($expected->higher_price, $actual->higher_price);
@@ -106,7 +106,7 @@ class AggregateTest extends TestCase
         $actual = Order::withSum('products as order_price', 'price')->withSum('products as order_products_count', 'quantity')->withCount('products')->first();
 
         $expected = DB::select(
-            DB::raw('select (select sum(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "order_price", (select sum(quantity) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "order_products_count", (select count(*) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_count" from "orders"')
+            'select (select sum(price) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "order_price", (select sum(quantity) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "order_products_count", (select count(*) from "product_orders" where "orders"."id" = "product_orders"."order_id") as "products_count" from "orders"'
         )[0];
 
         $this->assertEquals($expected->order_price, $actual->order_price);
