@@ -36,7 +36,6 @@ class ContactsPerJobGroup extends ListCard {
              ->withCount( 'contacts' )
              ->orderBy( 'contacts_count', 'desc' )
              ->limit( 100 )
-             ->zebra()
              ->value( 'contacts_count' );
     }
 

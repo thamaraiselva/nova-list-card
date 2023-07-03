@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
+use NovaListCard\ListCard;
 
 class CardRequest extends NovaRequest
 {
@@ -29,10 +30,8 @@ class CardRequest extends NovaRequest
         return [];
     }
 
-    /**
-     * @return string|null|\Laravel\Nova\Resource
-     */
-    public function findResource($resourceId = null): ?string
+
+    public function findCard($resourceId = null): ?ListCard
     {
         $allCards = new Collection();
         collect(Nova::$dashboards)
@@ -41,8 +40,12 @@ class CardRequest extends NovaRequest
 
         return $allCards
             ->filter(fn ($card) => (method_exists($card, 'uriKey') && $card->uriKey() == $this->route('key')))
-            ->first()
-            ?->resource;
+            ->first();
+    }
+
+    public function findResource($resourceId = null): ?string
+    {
+        return $this->findCard()?->resource;
     }
 
     /**

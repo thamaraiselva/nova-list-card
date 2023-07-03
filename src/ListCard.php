@@ -5,9 +5,13 @@ namespace NovaListCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Laravel\Nova\Card;
+use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Nova;
 
 class ListCard extends Card
 {
+    public ?string $name = null;
+
     public $width = '1/3';
 
     public $resource;
@@ -43,6 +47,35 @@ class ListCard extends Card
     public function component()
     {
         return 'nova-list-card';
+    }
+
+    public function cacheFor()
+    {
+        return 0;
+    }
+
+    public function getCacheKey(NovaRequest $request)
+    {
+        return sprintf(
+            'nova.metric.%s.%s.%s.%s.%s.%s.%s',
+            $this->uriKey(),
+            $request->input('range', 'no-range'),
+            $request->input('timezone', 'no-timezone'),
+            $request->input('twelveHourTime', 'no-12-hour-time'),
+            $this->onlyOnDetail ? $request->findModelOrFail()->getKey() : 'no-resource-id',
+            md5($request->input('filter', 'no-filter')),
+            md5($this->resource)
+        );
+    }
+
+    public function name()
+    {
+        return $this->name ?: Nova::humanize($this);
+    }
+
+    public function uriKey()
+    {
+        return Str::slug($this->name(), '-', null);
     }
 
     public function resource($resource)
