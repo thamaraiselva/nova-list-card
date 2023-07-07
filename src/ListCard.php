@@ -37,8 +37,6 @@ class ListCard extends Card
 
     public ?string $valueFormatter = null;
 
-    public bool $timestampEnabled = false;
-
     public ?string $timestampColumn = null;
 
     public ?string $timestampFormat = null;
@@ -138,7 +136,7 @@ class ListCard extends Card
         return $this;
     }
 
-    public function value(string $column, ?string $format = null, string $formatter = 'numerial'): static
+    public function value(string $column, ?string $formatter = 'integer', ?string $format = null): static
     {
         $this->valueColumn    = $column;
         $this->valueFormat    = $format;
@@ -147,9 +145,8 @@ class ListCard extends Card
         return $this;
     }
 
-    public function timestamp(string $column = 'created_at', string $format = 'MM/DD/YYYY'): static
+    public function timestamp(string $column = 'created_at', string $format = 'm/d/Y'): static
     {
-        $this->timestampEnabled = true;
         $this->timestampColumn  = $column;
         $this->timestampFormat  = $format;
 
@@ -176,22 +173,21 @@ class ListCard extends Card
     public function jsonSerialize(): array
     {
         return array_merge([
-            'limit'             => $this->limit,
-            'uri_key'           => $this->uriKey(),
-            'relationship'      => $this->relationship,
-            'aggregate'         => $this->aggregate,
-            'aggregate_column'  => $this->aggregateColumn,
-            'order_column'      => $this->orderColumn,
-            'order_direction'   => $this->orderDirection,
+            'uriKey'            => $this->uriKey(),
             'classes'           => $this->classes,
             'heading'           => $this->heading,
-            'value_column'      => $this->valueColumn,
-            'value_format'      => $this->valueFormat,
-            'value_formatter'   => $this->valueFormatter,
-            'timestamp_column'  => $this->timestampColumn,
-            'timestamp_enabled' => $this->timestampEnabled,
-            'timestamp_format'  => $this->timestampFormat,
-            'no_max_height'     => $this->noMaxHeight,
+            'noMaxHeight'       => $this->noMaxHeight,
+            'url'               => route('nova-list-card.data', array_merge(array_filter([
+                'key'          => $this->uriKey(),
+                'aggregate'    => $this->aggregate,
+                'relationship' => $this->relationship,
+                'column'       => $this->aggregateColumn,
+            ]), [
+                'order_by'       => $this->orderColumn,
+                'direction'      => $this->orderDirection,
+                'limit'          => $this->limit,
+                'nova-list-card' => $this->uriKey(),
+            ])),
         ], parent::jsonSerialize());
     }
 }

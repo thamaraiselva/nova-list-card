@@ -35,22 +35,17 @@ class ContactsPerJobGroup extends ListCard {
              ->heading( $this->name(), 'Contacts' )
              ->withCount( 'contacts' )
              ->orderBy( 'contacts_count', 'desc' )
+             ->value( 'contacts_count' )
              ->limit( 100 )
-             ->value( 'contacts_count' );
+             // Display timestamps
+             ->timestamp('updated_at');
     }
 
-    public function cacheFor() {
+    public function cacheFor(): int|Carbon
+    {
         return now()->addMinutes( 10 );
-    }
-
-    public function uriKey() {
-        return 'contacts-per-job-groups';
-    }
-
-    public function name() {
-        return 'Job Groups';
     }
 }
 ```
 
-![nova-list-card](./assets/images/nova-list-card.png)
+![nova-list-card](./docs/assets/images/nova-list-card.png)

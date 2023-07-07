@@ -1,16 +1,18 @@
 <template>
     <LoadingCard
         :loading="loading"
-        :id="card.uri_key"
+        :id="card.uriKey"
         class="text-gray-500 py-4 px-6 bg-white relative"
         :class="[card.classes]">
         <h3 class="h-6 flex mb-3 text-sm font-bold"
-            v-if="card.heading.length !== 0"
+            v-if="card.heading?.length !== 0"
         >
-            {{ card.heading.left }}
-            <span class="ml-auto font-semibold text-gray-400 text-xs"
-                  v-if="card.heading.right">
-                 {{ card.heading.right }}
+            {{ card.heading?.left }}
+            <span
+                v-if="card.heading?.right"
+                class="ml-auto font-semibold text-gray-400 text-xs"
+            >
+                 {{ card.heading?.right }}
             </span>
         </h3>
 
@@ -45,45 +47,34 @@
             <div
                 v-else
                 class="overflow-x-auto"
-                :class="[maxHeight]"
+                :class="[(card.noMaxHeight?'':'max-h-[90px]')]"
             >
                 <Link
-                    :href="$url(`/resources/${item.resourceName}/${item.resourceId}`)"
-                    v-for="(item, index) in items"
+                    :href="item.url"
+                    v-for="item in items"
                     :key="item.id"
                     class="cursor-pointer block no-underline hover:bg-gray-100"
                 >
                     <div class="flex py-1">
                         <div
-                            :class="{'w-full': card.value_column == null, 'grow pr-4': card.value_column != null}"
+                            :class="[(item.value !== undefined)?'grow pr-4':'w-full']"
                         >
-
                             <p class="truncate no-underline text-sm">
                                 {{ item.title }}
                             </p>
-
                             <p
                                 class="text-xs"
-                                v-if="card.timestamp_enabled"
+                                v-if="item.timestamp"
                             >
-                                {{ timestampValue(item.resource[card.timestamp_column], card.timestamp_format) }}
+                                {{ item.timestamp }}
                             </p>
-
-                            <p
-                                class="text-80"
-                                v-if="item.aggregate && card.relationship + '_' + card.aggregate !== card.value_column"
-                            >
-                                {{ item.aggregate }}&nbsp;{{ card.relationship }}
-                            </p>
-
                         </div>
                         <div
-                            v-if="card.value_column != null"
+                            v-if="item.value !== undefined"
                             class="truncate text-xs pr-2"
                         >
-                            {{ formatValue(item, card.value_format) }}
+                            {{ item.value }}
                         </div>
-
                     </div>
                 </Link>
             </div>
@@ -92,9 +83,6 @@
 </template>
 
 <script>
-import numerial from "numeral";
-import moment from 'moment'
-
 export default {
     props: ["card"],
     data() {
@@ -105,75 +93,14 @@ export default {
     },
     mounted() {
         Nova.request()
-            .get(this.endpoint)
+            .get(this.card.url)
             .then(data => {
                 this.items = data.data;
                 this.loading = false;
             })
             .catch(() => {
-                this.$toasted.show('List request failed!', {type: 'error'})
+                Nova.error(__('List request failed!'))
             });
     },
-    methods: {
-        formatValue(item, format) {
-            if (this.card.value_format == null) {
-                return this.value(item, format);
-            }
-            if (this.card.value_formatter === "numerial") {
-                return this.numerialValue(item, format);
-            }
-            if (this.card.value_formatter === "timestamp") {
-                return this.timestampValue(
-                    item.resource[this.card.value_column],
-                    format
-                );
-            }
-        },
-        timestampValue(value, format) {
-            let timestamp = moment(value);
-
-            if (format !== "relative") {
-                return timestamp.format(format);
-            } else {
-                return timestamp.fromNow();
-            }
-        },
-        numerialValue(item) {
-            return numerial(item.resource[this.card.value_column]).format(
-                this.card.value_format
-            );
-        },
-        value(item) {
-            return item.resource[this.card.value_column];
-        }
-    },
-    computed: {
-        maxHeight() {
-            return this.card.no_max_height?'':'max-h-[90px]';
-        },
-        endpoint() {
-            let endpoint = "/nova-vendor/nova-list-card/" + this.card.uri_key + "/";
-
-            if (this.card.relationship) {
-                endpoint += this.card.aggregate + "/" + this.card.relationship + "/";
-            }
-
-            if (this.card.aggregate_column) {
-                endpoint += this.card.aggregate_column + "/";
-            }
-
-            return (
-                (endpoint +=
-                    "?order_by=" +
-                    this.card.order_column +
-                    "&direction=" +
-                    this.card.order_direction +
-                    "&limit=" +
-                    this.card.limit) +
-                "&nova-list-card=" +
-                this.card.uri_key
-            );
-        }
-    }
 };
 </script>

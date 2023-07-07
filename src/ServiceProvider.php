@@ -37,7 +37,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                  Route::get(
                      '/{key}/{aggregate?}/{relationship?}/{column?}',
                      \NovaListCard\Http\Controllers\ResourceController::class
-                 );
+                 )->name('nova-list-card.data');
              });
     }
 

@@ -2,9 +2,9 @@
 
 namespace NovaListCard\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
-use Laravel\Nova\Nova;
 use NovaListCard\Http\Requests\CardRequest;
 use NovaListCard\ListCard;
 
@@ -23,33 +23,50 @@ class ResourceController extends Controller
         /** @var ListCard $card */
         $card     = $cardRequest->findCard();
         $resource = $card?->resource;
+
         throw_if(!$card || !$resource);
 
-        return Cache::remember(
-            $card->getCacheKey($cardRequest),
-            $card->cacheFor(),
-            function () use ($cardRequest, $resource) {
-                return $resource::indexQuery(
-                    $cardRequest,
-                    $cardRequest->prepareQuery($resource::newModel()->query())
-                )
-                    ->get()
-                    ->mapInto($resource)
-                    ->filter(function ($resource) use ($cardRequest) {
-                        return $resource->authorizedToView($cardRequest);
-                    })
-                    ->map(callback: fn($resource) => [
-                        'resource'      => $resource->resource->toArray(),
-                        'resourceName'  => $resource::uriKey(),
-                        'resourceTitle' => $resource::label(),
+        $callback = function () use ($cardRequest, $resource, $card) {
+            return $resource::indexQuery(
+                $cardRequest,
+                $cardRequest->prepareQuery($resource::newModel()->query())
+            )
+                ->get()
+                ->mapInto($resource)
+                ->filter(function ($resource) use ($cardRequest) {
+                    return $resource->authorizedToView($cardRequest);
+                })
+                ->map(callback: function ($resource) use ($card, $cardRequest) {
+                    $data = [
                         'title'         => $resource->title(),
-                        'subTitle'      => $resource->subtitle(),
-                        'resourceId'    => $resource->getKey(),
                         'url'           => route('nova.pages.detail', [$resource::uriKey(), $resource->getKey()]),
-                        'avatar'        => $resource->resolveAvatarUrl($cardRequest),
-                        'aggregate'     => data_get($resource, $cardRequest->aggregateColumn()),
-                    ]);
-            }
-        );
+                    ];
+
+                    if($card->valueColumn) {
+                        $value         = $resource->resource->{$card->valueColumn};
+                        $data['value'] = match ($card->valueFormatter) {
+                            'datetime' => Carbon::parse($value)->format($card->valueFormat),
+                            'integer'  => (int) $value,
+                            default    => $value,
+                        };
+                    }
+
+                    if($card->timestampColumn) {
+                        $data['timestamp'] = $resource->resource->{$card->timestampColumn}?->format($card->timestampFormat ?: 'Y-m-d');
+                    }
+
+                    return $data;
+                });
+        };
+
+        if ($cacheFor = $card->cacheFor()) {
+            return Cache::remember(
+                $card->getCacheKey($cardRequest),
+                $cacheFor,
+                $callback
+            );
+        }
+
+        return call_user_func($callback);
     }
 }
