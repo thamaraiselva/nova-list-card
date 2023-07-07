@@ -79,7 +79,7 @@ class CardRequest extends NovaRequest
     {
         $column = $this->columnKey();
 
-        return "{$this->relationshipKey()}_{$this->aggregateKey()}".($column ? "_{$column}" : '');
+        return "{$this->relationshipKey()}_{$this->aggregateKey()}" . ($column ? "_{$column}" : '');
     }
 
     public function prepareQuery(Builder $query): Builder
@@ -95,7 +95,10 @@ class CardRequest extends NovaRequest
         $query->orderBy($this->input('order_by', $query->getModel()->getKeyName()), $this->input('direction', 'asc'));
 
         if ($this->has('limit')) {
-            $query->take($this->input('limit'));
+            $limit = $this->integer('limit');
+            if ($limit > 0) {
+                $query->take($limit);
+            }
         }
 
         return $query;

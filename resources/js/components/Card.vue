@@ -44,7 +44,8 @@
             </div>
             <div
                 v-else
-                class="max-h-[90px] overflow-x-auto"
+                class="overflow-x-auto"
+                :class="[maxHeight]"
             >
                 <Link
                     :href="$url(`/resources/${item.resourceName}/${item.resourceId}`)"
@@ -147,6 +148,9 @@ export default {
         }
     },
     computed: {
+        maxHeight() {
+            return this.card.no_max_height?'':'max-h-[90px]';
+        },
         endpoint() {
             let endpoint = "/nova-vendor/nova-list-card/" + this.card.uri_key + "/";
 

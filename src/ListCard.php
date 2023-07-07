@@ -2,11 +2,12 @@
 
 namespace NovaListCard;
 
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Nova\Card;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
+use Laravel\Nova\Resource;
 
 class ListCard extends Card
 {
@@ -14,47 +15,49 @@ class ListCard extends Card
 
     public $width = '1/3';
 
-    public $resource;
+    public ?string $resource = null;
 
-    public $relationship;
+    public ?string $relationship = null;
 
-    public $aggregate;
+    public ?string $aggregate = null;
 
-    public $aggregateColumn;
+    public ?string $aggregateColumn = null;
 
-    public int $limit = 5;
+    public ?int $limit = 5;
 
     public string $orderColumn = 'created_at';
 
-    public $orderDirection = 'desc';
+    public string $orderDirection = 'desc';
 
-    public $heading = [];
+    public array $heading = [];
 
-    public $valueColumn;
+    public ?string $valueColumn = null;
 
-    public $valueFormat;
+    public ?string $valueFormat = null;
 
-    public $valueFormatter;
+    public ?string $valueFormatter = null;
 
-    public $timestampEnabled = false;
+    public bool $timestampEnabled = false;
 
-    public $timestampColumn;
+    public ?string $timestampColumn = null;
 
-    public $timestampFormat;
+    public ?string $timestampFormat = null;
 
-    public $classes;
+    public bool $noMaxHeight = false;
+
+    public string $classes = '';
 
     public function component()
     {
         return 'nova-list-card';
     }
 
-    public function cacheFor()
+    public function cacheFor(): int|Carbon
     {
         return 0;
     }
 
-    public function getCacheKey(NovaRequest $request)
+    public function getCacheKey(NovaRequest $request): string
     {
         return sprintf(
             'nova.metric.%s.%s.%s.%s.%s.%s.%s',
@@ -68,17 +71,21 @@ class ListCard extends Card
         );
     }
 
-    public function name()
+    public function name(): string
     {
         return $this->name ?: Nova::humanize($this);
     }
 
-    public function uriKey()
+    public function uriKey(): string
     {
         return Str::slug($this->name(), '-', null);
     }
 
-    public function resource($resource)
+    /**
+     * @param class-string<Resource> $resource
+     * @return $this
+     */
+    public function resource(string $resource): static
     {
         $this->resource = $resource;
         $this->classes($resource::uriKey());
@@ -86,7 +93,7 @@ class ListCard extends Card
         return $this;
     }
 
-    public function withCount($relationship)
+    public function withCount($relationship): static
     {
         $this->aggregate    = 'count';
         $this->relationship = $relationship;
@@ -94,7 +101,7 @@ class ListCard extends Card
         return $this;
     }
 
-    public function withSum($relationship, $column)
+    public function withSum(string $relationship, string $column): static
     {
         $this->aggregate       = 'sum';
         $this->relationship    = $relationship;
@@ -103,30 +110,35 @@ class ListCard extends Card
         return $this;
     }
 
-    public function orderBy($column, $direction = 'asc')
+    public function orderBy(string $column, string $direction = 'desc'): static
     {
-        $this->orderColumn    = $column;
+        $this->orderColumn = $column;
+
+        $direction = Str::lower($direction);
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
         $this->orderDirection = $direction;
 
         return $this;
     }
 
-    public function limit($limit)
+    public function limit(?int $limit = 5): static
     {
         $this->limit = $limit;
 
         return $this;
     }
 
-    public function heading($left, $right = null)
+    public function heading(string $left, ?string $right = null): static
     {
-        $this->heading = [ 'left' => $left, 'right' => $right ];
+        $this->heading = ['left' => $left, 'right' => $right];
         $this->classes(Str::slug($left));
 
         return $this;
     }
 
-    public function value($column, $format = null, $formatter = 'numerial')
+    public function value(string $column, ?string $format = null, string $formatter = 'numerial'): static
     {
         $this->valueColumn    = $column;
         $this->valueFormat    = $format;
@@ -135,7 +147,7 @@ class ListCard extends Card
         return $this;
     }
 
-    public function timestamp($column = 'created_at', $format = 'MM/DD/YYYY'): ListCard
+    public function timestamp(string $column = 'created_at', string $format = 'MM/DD/YYYY'): static
     {
         $this->timestampEnabled = true;
         $this->timestampColumn  = $column;
@@ -144,14 +156,14 @@ class ListCard extends Card
         return $this;
     }
 
-    /**
-     * Add wrapper class
-     *
-     * @param string $classes
-     *
-     * @return $this
-     */
-    public function classes(string $classes): ListCard
+    public function noMaxHeight(bool $noMaxHeight = true): static
+    {
+        $this->noMaxHeight = $noMaxHeight;
+
+        return $this;
+    }
+
+    public function classes(string $classes): static
     {
         $this->classes = "{$this->classes} {$classes}";
 
@@ -179,14 +191,7 @@ class ListCard extends Card
             'timestamp_column'  => $this->timestampColumn,
             'timestamp_enabled' => $this->timestampEnabled,
             'timestamp_format'  => $this->timestampFormat,
+            'no_max_height'     => $this->noMaxHeight,
         ], parent::jsonSerialize());
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function authorize(Request $request): bool
-    {
-        return true; // authorizeToViewAny
     }
 }
