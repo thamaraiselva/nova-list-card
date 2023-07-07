@@ -38,19 +38,17 @@ class ResourceController extends Controller
                     ->filter(function ($resource) use ($cardRequest) {
                         return $resource->authorizedToView($cardRequest);
                     })
-                    ->map(callback: function ($resource) use ($cardRequest) {
-                        return [
-                            'resource'      => $resource->resource->toArray(),
-                            'resourceName'  => $resource::uriKey(),
-                            'resourceTitle' => $resource::label(),
-                            'title'         => $resource->title(),
-                            'subTitle'      => $resource->subtitle(),
-                            'resourceId'    => $resource->getKey(),
-                            'url'           => url(Nova::path() . '/resources/' . $resource::uriKey() . '/' . $resource->getKey()),
-                            'avatar'        => $resource->resolveAvatarUrl($cardRequest),
-                            'aggregate'     => data_get($resource, $cardRequest->aggregateColumn()),
-                        ];
-                    });
+                    ->map(callback: fn($resource) => [
+                        'resource'      => $resource->resource->toArray(),
+                        'resourceName'  => $resource::uriKey(),
+                        'resourceTitle' => $resource::label(),
+                        'title'         => $resource->title(),
+                        'subTitle'      => $resource->subtitle(),
+                        'resourceId'    => $resource->getKey(),
+                        'url'           => route('nova.pages.detail', [$resource::uriKey(), $resource->getKey()]),
+                        'avatar'        => $resource->resolveAvatarUrl($cardRequest),
+                        'aggregate'     => data_get($resource, $cardRequest->aggregateColumn()),
+                    ]);
             }
         );
     }
