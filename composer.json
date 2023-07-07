@@ -1,5 +1,5 @@
 {
-    "name": "yaroslawww/nova-list-card",
+    "name": "think.studio/nova-list-card",
     "description": "Laravel Nova card with resources list",
     "keywords": [
         "laravel",
@@ -7,8 +7,16 @@
         "card",
         "listing"
     ],
-    "homepage": "https://github.com/yaroslawww/nova-list-card",
+    "homepage": "https://github.com/dev-think-one/nova-list-card",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Yaroslav Georgitsa",
+            "email": "yg@think.studio",
+            "homepage": "https://github.com/yaroslawww",
+            "role": "Developer"
+        }
+    ],
     "repositories": [
         {
             "type": "composer",

@@ -6,4 +6,4 @@ mix
     .setPublicPath('dist')
     .js('resources/js/card.js', 'js')
     .vue({ version: 3 })
-    .nova('yaroslawww/nova-list-card')
+    .nova('think.studio/nova-list-card')
