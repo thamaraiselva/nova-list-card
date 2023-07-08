@@ -3,6 +3,8 @@
 namespace NovaListCard\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Nova\NovaCoreServiceProvider;
+use NovaListCard\Tests\Fixtures\NovaServiceProvider;
 use Orchestra\Testbench\Database\MigrateProcessor;
 
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -12,6 +14,8 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
+            NovaCoreServiceProvider::class,
+            NovaServiceProvider::class,
             \NovaListCard\ServiceProvider::class,
         ];
     }

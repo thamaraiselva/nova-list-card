@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
+use Laravel\Nova\Resource;
 use NovaListCard\ListCard;
 
 class CardRequest extends NovaRequest
 {
+    protected ?ListCard $_card = null;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -31,74 +34,67 @@ class CardRequest extends NovaRequest
     }
 
 
-    public function findCard($resourceId = null): ?ListCard
+    public function card(): ?ListCard
     {
-        $allCards = new Collection();
-        collect(Nova::$dashboards)
-            ->filter(fn ($dashboard) => method_exists($dashboard, 'cards') && is_array($dashboard->cards()))
-            ->each(fn ($dashboard) => $allCards->push(...$dashboard->cards()));
+        if (!$this->_card) {
+            $allCards = new Collection();
+            collect(Nova::$dashboards)
+                ->filter(fn ($dashboard) => method_exists($dashboard, 'cards') && is_array($dashboard->cards()))
+                ->each(fn ($dashboard) => $allCards->push(...$dashboard->cards()));
 
-        return $allCards
-            ->filter(fn ($card) => (method_exists($card, 'uriKey') && $card->uriKey() == $this->route('key')))
-            ->first();
-    }
+            $this->_card = $allCards
+                ->filter(fn ($card) => (method_exists($card, 'uriKey') && $card->uriKey() == $this->route('key')))
+                ->first();
+        }
 
-    public function findResource($resourceId = null): ?string
-    {
-        return $this->findCard()?->resource;
-    }
-
-    /**
-     * @return string
-     */
-    public function aggregateKey(): string
-    {
-        return $this->route('aggregate', 'count');
+        return $this->_card;
     }
 
     /**
-     * @return string|null
+     * @return class-string<Resource>|null
      */
-    public function relationshipKey(): ?string
+    public function cardResource(): ?string
     {
-        return $this->route('relationship');
+        return $this->card()?->resource;
     }
 
-    /**
-     * @return string|null
-     */
-    public function columnKey(): ?string
+    public function prepareQuery(): Builder
     {
-        return $this->route('column');
-    }
+        $resource = $this->cardResource();
+        if(!$resource) {
+            throw new \Exception('Resource not found');
+        }
 
-    /**
-     * @return string|null
-     */
-    public function aggregateColumn(): string
-    {
-        $column = $this->columnKey();
+        /** @var Builder $query */
+        $query = $resource::newModel()->query();
 
-        return "{$this->relationshipKey()}_{$this->aggregateKey()}" . ($column ? "_{$column}" : '');
-    }
+        $card = $this->card();
 
-    public function prepareQuery(Builder $query): Builder
-    {
-        if ($this->relationshipKey()) {
-            $query = match ($this->aggregateKey()) {
-                'count' => $query->withCount($this->relationshipKey()),
-                'sum'   => $query->withSum($this->relationshipKey(), $this->columnKey()),
+        if ($card->relationship) {
+            $query = match ($card->aggregate) {
+                'count' => $query->withCount($card->relationship),
+                'sum'   => $query->withSum($card->relationship, $card->aggregateColumn ?: $card->valueColumn),
+                'avg'   => $query->withAvg($card->relationship, $card->aggregateColumn ?: $card->valueColumn),
+                'min'   => $query->withMin($card->relationship, $card->aggregateColumn ?: $card->valueColumn),
+                'max'   => $query->withMax($card->relationship, $card->aggregateColumn ?: $card->valueColumn),
                 default => $query
             };
         }
 
-        $query->orderBy($this->input('order_by', $query->getModel()->getKeyName()), $this->input('direction', 'asc'));
 
-        if ($this->has('limit')) {
-            $limit = $this->integer('limit');
-            if ($limit > 0) {
-                $query->take($limit);
-            }
+        if ($card->orderColumn) {
+            $query->orderBy($card->orderColumn, $card->orderDirection);
+        }
+
+        if (
+            ($limit = $card->limit) &&
+            $limit > 0
+        ) {
+            $query->take($limit);
+        }
+
+        if (is_callable($card->queryCallback)) {
+            call_user_func($card->queryCallback, $query);
         }
 
         return $query;

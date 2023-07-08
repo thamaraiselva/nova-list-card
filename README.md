@@ -7,6 +7,8 @@
 [![Code Coverage](https://scrutinizer-ci.com/g/dev-think-one/nova-list-card/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/dev-think-one/nova-list-card/?branch=main)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/dev-think-one/nova-list-card/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/dev-think-one/nova-list-card/?branch=main)
 
+![nova-list-card](./docs/assets/images/nova-list-card.png)
+
 | Nova  | Package |
 |-------|---------|
 | V1-V3 | V1-V3   |
@@ -20,36 +22,92 @@ composer require think.studio/nova-list-card
 
 ### Usage
 
+![nova-list-card](./docs/assets/images/list-card-count.png)
+
 ```php
-<?php
-namespace App\Nova\Metrics;
+class FundsWithReportsCount extends ListCard
+{
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
 
-use NovaListCard\ListCard;
-
-class ContactsPerJobGroup extends ListCard {
-
-    public function __construct( $component = null ) {
-        parent::__construct( $component );
-
-        $this->resource( \App\Nova\Resources\JobGroup::class )
-             ->heading( $this->name(), 'Contacts' )
-             ->withCount( 'contacts' )
-             ->orderBy( 'contacts_count', 'desc' )
-             ->value( 'contacts_count' )
-             ->limit( 100 )
-             // Display timestamps
-             ->timestamp('updated_at');
+        $this->resource(\App\Nova\Resources\Fund::class)
+            ->heading($this->name(), 'Reports')
+            ->withCount('reports')
+            ->orderBy('reports_count', 'desc')
+            ->limit(100)
+            ->value('reports_count');
     }
 
     public function cacheFor(): int|Carbon
     {
-        return now()->addMinutes( 10 );
+        return Carbon::now()->addMinutes(2);
     }
 }
 ```
 
-![nova-list-card](./docs/assets/images/nova-list-card.png)
+![nova-list-card](./docs/assets/images/list-card-sum.png)
 
+```php
+class FundsWithReportIncomeSum extends ListCard
+{
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
+
+        $this->resource(\App\Nova\Resources\Fund::class)
+            ->heading($this->name(), 'Total Income')
+            ->withSum('reports', 'income')
+            ->orderBy('reports_sum_income', 'desc')
+            ->limit(100)
+            ->value('reports_sum_income');
+    }
+}
+```
+
+![nova-list-card](./docs/assets/images/list-card-query.png)
+
+```php
+class FundsCustomList extends ListCard
+{
+
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
+
+        $this->resource(\App\Nova\Resources\Fund::class)
+            ->heading($this->name())
+            ->limit(100)
+            ->timestamp('updated_at', 'm/Y')
+            ->queryCallback(fn (Builder $q) => $q->where('publication_status', 'draft'));
+    }
+
+    public function name(): string
+    {
+        return 'Draft funds';
+    }
+}
+```
+
+![nova-list-card](./docs/assets/images/list-card-format.png)
+
+```php
+class FundsWithValueFormat extends ListCard
+{
+    public function __construct($component = null)
+    {
+        parent::__construct($component);
+
+        $this->resource(\App\Nova\Resources\Fund::class)
+            ->heading($this->name(), 'Created at')
+            ->limit(100)
+            ->timestamp('updated_at', 'm/Y')
+            ->value('created_at', 'datetime', 'm/Y')
+            ->classes('bg-yellow-300')
+            ->noMaxHeight();
+    }
+}
+```
 
 ## Credits
 

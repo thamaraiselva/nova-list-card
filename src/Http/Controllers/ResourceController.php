@@ -5,8 +5,8 @@ namespace NovaListCard\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Response;
 use NovaListCard\Http\Requests\CardRequest;
-use NovaListCard\ListCard;
 
 /**
  * @psalm-suppress UndefinedClass
@@ -16,42 +16,44 @@ class ResourceController extends Controller
     /**
      * @param \NovaListCard\Http\Requests\CardRequest $cardRequest
      * @return mixed
-     * @throws \Throwable
      */
     public function __invoke(CardRequest $cardRequest)
     {
-        /** @var ListCard $card */
-        $card     = $cardRequest->findCard();
-        $resource = $card?->resource;
 
-        throw_if(!$card || !$resource);
+        $callback = function () use ($cardRequest) {
+            if (!$cardRequest->cardResource()) {
+                return Response::json([
+                    'message' => __('Card not found'),
+                ], 404);
+            }
 
-        $callback = function () use ($cardRequest, $resource, $card) {
-            return $resource::indexQuery(
+            return $cardRequest->cardResource()::indexQuery(
                 $cardRequest,
-                $cardRequest->prepareQuery($resource::newModel()->query())
+                $cardRequest->prepareQuery()
             )
                 ->get()
-                ->mapInto($resource)
+                ->mapInto($cardRequest->cardResource())
                 ->filter(function ($resource) use ($cardRequest) {
                     return $resource->authorizedToView($cardRequest);
                 })
-                ->map(callback: function ($resource) use ($card, $cardRequest) {
+                ->map(callback: function ($resource) use ($cardRequest) {
                     $data = [
-                        'title'         => $resource->title(),
-                        'url'           => route('nova.pages.detail', [$resource::uriKey(), $resource->getKey()]),
+                        'title' => $resource->title(),
+                        'url'   => route('nova.pages.detail', [$resource::uriKey(), $resource->getKey()]),
                     ];
 
-                    if($card->valueColumn) {
+                    $card = $cardRequest->card();
+
+                    if ($card->valueColumn) {
                         $value         = $resource->resource->{$card->valueColumn};
                         $data['value'] = match ($card->valueFormatter) {
                             'datetime' => Carbon::parse($value)->format($card->valueFormat),
-                            'integer'  => (int) $value,
+                            'integer'  => (int)$value,
                             default    => $value,
                         };
                     }
 
-                    if($card->timestampColumn) {
+                    if ($card->timestampColumn) {
                         $data['timestamp'] = $resource->resource->{$card->timestampColumn}?->format($card->timestampFormat ?: 'Y-m-d');
                     }
 
@@ -59,9 +61,9 @@ class ResourceController extends Controller
                 });
         };
 
-        if ($cacheFor = $card->cacheFor()) {
+        if ($cacheFor = $cardRequest->card()?->cacheFor()) {
             return Cache::remember(
-                $card->getCacheKey($cardRequest),
+                $cardRequest->card()->getCacheKey($cardRequest),
                 $cacheFor,
                 $callback
             );

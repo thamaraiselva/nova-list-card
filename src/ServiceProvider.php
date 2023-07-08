@@ -31,14 +31,14 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             return;
         }
 
-        Route::middleware([ 'nova' ])
-             ->prefix('nova-vendor/nova-list-card')
-             ->group(function () {
-                 Route::get(
-                     '/{key}/{aggregate?}/{relationship?}/{column?}',
-                     \NovaListCard\Http\Controllers\ResourceController::class
-                 )->name('nova-list-card.data');
-             });
+        Route::middleware(['nova'])
+            ->prefix('nova-vendor/nova-list-card')
+            ->group(function () {
+                Route::get(
+                    '/{key}',
+                    \NovaListCard\Http\Controllers\ResourceController::class
+                )->name('nova-list-card.data');
+            });
     }
 
     /**

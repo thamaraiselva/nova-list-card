@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProductOrdersTable extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      *
@@ -12,12 +12,13 @@ class CreateProductOrdersTable extends Migration
      */
     public function up()
     {
-        Schema::create('product_orders', function ($table) {
-            $table->increments('id');
+        Schema::create('product_orders', function (Blueprint $table) {
+            $table->id();
             $table->string('name');
             $table->integer('order_id')->unsigned();
             $table->integer('quantity');
             $table->integer('price');
+            $table->timestamps();
         });
     }
 
@@ -30,4 +31,4 @@ class CreateProductOrdersTable extends Migration
     {
         Schema::dropIfExists('product_orders');
     }
-}
+};

@@ -22,7 +22,8 @@ class AggregateTest extends TestCase
         ]);
     }
 
-    public function testWithCount()
+    /** @test */
+    public function with_count()
     {
         $actual = Order::withAggregate('products', '*', 'count')->first();
 
@@ -33,7 +34,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->products_count, $actual->products_count);
     }
 
-    public function testWithSum()
+    /** @test */
+    public function with_sum()
     {
         $actual = Order::query()->withSum('products', 'quantity')->first();
 
@@ -44,7 +46,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->products_sum, $actual->products_sum_quantity);
     }
 
-    public function testWithAvg()
+    /** @test */
+    public function with_avg()
     {
         $actual = Order::withAvg('products', 'price')->first();
 
@@ -55,7 +58,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->products_avg, $actual->products_avg_price);
     }
 
-    public function testWithMin()
+    /** @test */
+    public function with_min()
     {
         $actual = Order::withMin('products', 'price')->first();
 
@@ -66,7 +70,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->products_min, $actual->products_min_price);
     }
 
-    public function testWithMax()
+    /** @test */
+    public function with_max()
     {
         $actual = Order::withMax('products', 'price')->first();
 
@@ -77,7 +82,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->products_max, $actual->products_max_price);
     }
 
-    public function testWithMinAndAlias()
+    /** @test */
+    public function with_min_and_alias()
     {
         $actual = Order::withMin('products as min_price', 'price')->first();
 
@@ -88,7 +94,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->min_price, $actual->min_price);
     }
 
-    public function testWithMaxWithAliasWithWhere()
+    /** @test */
+    public function with_max_with_alias_with_where()
     {
         $actual = Order::withMax(['products as higher_price' => function ($query) {
             $query->where('quantity', '>', 1);
@@ -101,7 +108,8 @@ class AggregateTest extends TestCase
         $this->assertEquals($expected->higher_price, $actual->higher_price);
     }
 
-    public function testWithSumPricesAndCountQ2uantityWithAliases()
+    /** @test */
+    public function with_sum_prices_and_count_quantity_with_aliases()
     {
         $actual = Order::withSum('products as order_price', 'price')->withSum('products as order_products_count', 'quantity')->withCount('products')->first();
 

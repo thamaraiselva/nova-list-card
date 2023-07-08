@@ -5,11 +5,11 @@ namespace NovaListCard;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Nova\Card;
-use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Nova;
 use Laravel\Nova\Resource;
+use NovaListCard\Http\Requests\CardRequest;
 
-class ListCard extends Card
+abstract class ListCard extends Card
 {
     public ?string $name = null;
 
@@ -25,9 +25,11 @@ class ListCard extends Card
 
     public ?int $limit = 5;
 
-    public string $orderColumn = 'created_at';
+    public ?string $orderColumn = null;
 
-    public string $orderDirection = 'desc';
+    public ?string $orderDirection = null;
+
+    public ?\Closure $queryCallback = null;
 
     public array $heading = [];
 
@@ -55,16 +57,15 @@ class ListCard extends Card
         return 0;
     }
 
-    public function getCacheKey(NovaRequest $request): string
+    public function getCacheKey(CardRequest $request): string
     {
         return sprintf(
-            'nova.metric.%s.%s.%s.%s.%s.%s.%s',
+            'nova.metric.%s.%s.%s.%s.%s.%s',
             $this->uriKey(),
             $request->input('range', 'no-range'),
             $request->input('timezone', 'no-timezone'),
             $request->input('twelveHourTime', 'no-12-hour-time'),
             $this->onlyOnDetail ? $request->findModelOrFail()->getKey() : 'no-resource-id',
-            md5($request->input('filter', 'no-filter')),
             md5($this->resource)
         );
     }
@@ -91,21 +92,23 @@ class ListCard extends Card
         return $this;
     }
 
-    public function withCount($relationship): static
+    public function withAggregate(string $aggregate, string $relationship, ?string $column = null): static
     {
-        $this->aggregate    = 'count';
-        $this->relationship = $relationship;
-
-        return $this;
-    }
-
-    public function withSum(string $relationship, string $column): static
-    {
-        $this->aggregate       = 'sum';
+        $this->aggregate       = $aggregate;
         $this->relationship    = $relationship;
         $this->aggregateColumn = $column;
 
         return $this;
+    }
+
+    public function withCount(string $relationship): static
+    {
+        return $this->withAggregate('count', $relationship);
+    }
+
+    public function withSum(string $relationship, string $column): static
+    {
+        return $this->withAggregate('sum', $relationship, $column);
     }
 
     public function orderBy(string $column, string $direction = 'desc'): static
@@ -128,6 +131,13 @@ class ListCard extends Card
         return $this;
     }
 
+    public function queryCallback(?\Closure $queryCallback = null): static
+    {
+        $this->queryCallback = $queryCallback;
+
+        return $this;
+    }
+
     public function heading(string $left, ?string $right = null): static
     {
         $this->heading = ['left' => $left, 'right' => $right];
@@ -145,10 +155,10 @@ class ListCard extends Card
         return $this;
     }
 
-    public function timestamp(string $column = 'created_at', string $format = 'm/d/Y'): static
+    public function timestamp(string $column = 'created_at', string $format = 'd/m/Y'): static
     {
-        $this->timestampColumn  = $column;
-        $this->timestampFormat  = $format;
+        $this->timestampColumn = $column;
+        $this->timestampFormat = $format;
 
         return $this;
     }
@@ -173,21 +183,11 @@ class ListCard extends Card
     public function jsonSerialize(): array
     {
         return array_merge([
-            'uriKey'            => $this->uriKey(),
-            'classes'           => $this->classes,
-            'heading'           => $this->heading,
-            'noMaxHeight'       => $this->noMaxHeight,
-            'url'               => route('nova-list-card.data', array_merge(array_filter([
-                'key'          => $this->uriKey(),
-                'aggregate'    => $this->aggregate,
-                'relationship' => $this->relationship,
-                'column'       => $this->aggregateColumn,
-            ]), [
-                'order_by'       => $this->orderColumn,
-                'direction'      => $this->orderDirection,
-                'limit'          => $this->limit,
-                'nova-list-card' => $this->uriKey(),
-            ])),
+            'uriKey'      => $this->uriKey(),
+            'classes'     => trim($this->classes),
+            'heading'     => $this->heading,
+            'noMaxHeight' => $this->noMaxHeight,
+            'url'         => route('nova-list-card.data', ['key' => $this->uriKey()]),
         ], parent::jsonSerialize());
     }
 }
