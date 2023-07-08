@@ -51,19 +51,25 @@ class CardRequest extends NovaRequest
     }
 
     /**
-     * @return class-string<Resource>|null
+     * @return class-string<Resource>
      */
-    public function cardResource(): ?string
+    public function cardResource(): string
     {
-        return $this->card()?->resource;
+        $resource = $this->card()?->resource;
+        if (!$resource) {
+            throw new \Exception('Resource not found');
+        }
+
+        return $resource;
     }
 
+    /**
+     * @return Builder
+     * @throws \Exception
+     */
     public function prepareQuery(): Builder
     {
         $resource = $this->cardResource();
-        if(!$resource) {
-            throw new \Exception('Resource not found');
-        }
 
         /** @var Builder $query */
         $query = $resource::newModel()->query();

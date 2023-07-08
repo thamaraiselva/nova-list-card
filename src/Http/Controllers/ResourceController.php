@@ -21,9 +21,11 @@ class ResourceController extends Controller
     {
 
         $callback = function () use ($cardRequest) {
-            if (!$cardRequest->cardResource()) {
+            try {
+                $resource = $cardRequest->cardResource();
+            } catch (\Exception $e) {
                 return Response::json([
-                    'message' => __('Card not found'),
+                    'message' => $e->getMessage(),
                 ], 404);
             }
 
