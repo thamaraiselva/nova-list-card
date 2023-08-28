@@ -11,7 +11,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
 {
     use RefreshDatabase;
 
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             NovaCoreServiceProvider::class,
@@ -20,7 +20,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ];
     }
 
-    protected function defineDatabaseMigrations()
+    protected function defineDatabaseMigrations(): void
     {
         $this->loadLaravelMigrations();
 
@@ -38,7 +38,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
      *
      * @return void
      */
-    protected function getEnvironmentSetUp($app)
+    protected function getEnvironmentSetUp($app): void
     {
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
